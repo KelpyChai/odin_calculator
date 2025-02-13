@@ -25,8 +25,8 @@ const buttons = [
 let data = {
     current: 'a',
     operator: 'none',
-    a: 0.0,
-    b: 0.0,
+    a: 0,
+    b: 0,
 };
 
 buttons.forEach(button => buttonsDiv.appendChild(createButton(button, data)));
@@ -38,6 +38,8 @@ function createButton(buttonData, mathData) {
 
     if ('0' <= buttonData.symbol && buttonData.symbol <= '9') {
         button.addEventListener('click', () => enterDigit(mathData, button.textContent));
+    } else if (buttonData.symbol === '.') {
+        button.addEventListener('click', () => enterDecimalPoint());
     } else if (buttonData.name === 'backspace') {
         button.addEventListener('click', () => deleteDigit(mathData));
     } else if (buttonData.name === 'clear') {
@@ -48,27 +50,50 @@ function createButton(buttonData, mathData) {
 }
 
 function enterDigit(data, digit) {
-    if (display.innerHTML === '0') {
-        display.innerHTML = digit;
+    if (!display.textContent.includes('.')) {
+        data[data.current] *= 10;
+        data[data.current] += parseInt(digit);
+    } else if (display.textContent.slice(-1) === '.') {
+        data[data.current] += parseInt(digit) * 0.1;
     } else {
-        display.innerHTML += digit;
+        const decimalPlace = display.textContent.split('.')[1].length + 1;
+        data[data.current] += parseInt(digit) * (0.1 ** decimalPlace);
     }
-    data[data.current] += parseInt(digit);
+
+    if (display.textContent === '0') {
+        display.textContent = digit;
+    } else {
+        display.textContent += digit;
+    }
+}
+
+function enterDecimalPoint() {
+    if (!display.textContent.includes('.')) {
+        display.textContent += '.';
+    }
 }
 
 function deleteDigit(data) {
+    if (!display.textContent.includes('.')) {
+        data[data.current] = Math.floor(data[data.current] / 10);
+    } else if (display.textContent.slice(-1) === '.') {
+        // Do nothing
+    } else {
+        const decimalPlace = display.textContent.split('.')[1].length;
+        data[data.current] -= parseInt(display.textContent.slice(-1)) * (0.1 ** decimalPlace);
+    }
+
     if (display.textContent.length === 1) {
         display.textContent = '0';
     } else {
         display.textContent = display.textContent.slice(0, -1);
     }
-    data[data.current] = Math.floor(data[data.current] / 10);
 }
 
 function clearDisplay(data) {
     display.textContent = '0';
     data.current = 'a';
     data.operator = 'none';
-    data.a = 0.0;
-    data.b = 0.0;
+    data.a = 0;
+    data.b = 0;
 }
