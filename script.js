@@ -44,12 +44,21 @@ function createButton(buttonData, mathData) {
         button.addEventListener('click', () => deleteDigit(mathData));
     } else if (buttonData.name === 'clear') {
         button.addEventListener('click', () => clearDisplay(mathData));
-    } 
+    } else if (buttonData.name === 'evaluate') {
+        button.addEventListener('click', () => evaluteExpression(mathData));
+    } else {
+        button.addEventListener('click', () => chooseOperator(mathData, button.className));
+    }
 
     return button;
 }
 
 function enterDigit(data, digit) {
+    if (data.current === 'operator') {
+        data.current = 'b';
+        display.textContent = '0';
+    }
+
     if (!display.textContent.includes('.')) {
         data[data.current] *= 10;
         data[data.current] += parseInt(digit);
@@ -68,6 +77,11 @@ function enterDigit(data, digit) {
 }
 
 function enterDecimalPoint() {
+    if (data.current === 'operator') {
+        data.current = 'b';
+        display.textContent = '0';
+    }
+
     if (!display.textContent.includes('.')) {
         display.textContent += '.';
     }
@@ -97,3 +111,64 @@ function clearDisplay(data) {
     data.a = 0;
     data.b = 0;
 }
+
+function evaluteExpression(data) {
+    if (data.current === 'a') {
+        return;
+    } else if (data.current === 'operator') {
+        data.b = data.a;
+    }
+
+    data.a = operate(data);
+    data.b = 0;
+    data.current = 'a';
+    data.operator = 'none';
+    display.textContent = data.a.toString();
+}
+
+function operate(data) {
+    switch (data.operator) {
+        case 'add':
+            return data.a + data.b;
+        case 'subtract':
+            return data.a - data.b;
+        case 'multiply':
+            return data.a * data.b;
+        case 'divide':
+            return (data.b === 0) ? 'Uh-oh...' : data.a / data.b;
+        default:
+            return 'error: unexpected operator';
+    }
+}
+
+function chooseOperator(data, operator) {
+    if (data.current === 'operator') {
+        if (operator === 'percent') {
+            divideByHundred(data);
+        } else {
+            data.operator = operator;
+        }
+    } else if (data.current === 'a') {
+        data.current = 'operator';
+        if (operator === 'percent') {
+            divideByHundred(data);
+        } else {
+            data.operator = operator;
+        }
+    } else if (data.current === 'b') {
+        evaluteExpression(data);
+        chooseOperator(data, operator);
+    }
+}
+
+function divideByHundred(data) {
+    data.operator = 'divide'
+    data.b = 100;
+    data.current = 'b';
+    evaluteExpression(data);
+}
+
+// TODO:
+//  - Handle division by zero gracefully
+//  - Round decimals to avoid overflow
+//  - Mitigate floating point errors
