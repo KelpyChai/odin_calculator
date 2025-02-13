@@ -1,7 +1,8 @@
+const display = document.querySelector(".display");
 const buttonsDiv = document.querySelector(".buttons");
 const buttons = [
     {name: 'clear',     symbol: 'AC'},
-    {name: 'backpsace', symbol: '⌫'},
+    {name: 'backspace', symbol: '⌫'},
     {name: 'percent',   symbol: '%'},
     {name: 'divide',    symbol: '÷'},
     {name: 'seven',     symbol: '7'},
@@ -24,8 +25,8 @@ const buttons = [
 let data = {
     current: 'a',
     operator: 'none',
-    a: 0,
-    b: 0,
+    a: 0.0,
+    b: 0.0,
 };
 
 buttons.forEach(button => buttonsDiv.appendChild(createButton(button, data)));
@@ -36,23 +37,38 @@ function createButton(buttonData, mathData) {
     button.textContent = buttonData.symbol;
 
     if ('0' <= buttonData.symbol && buttonData.symbol <= '9') {
-        button.addEventListener('click', () => enterDigit(mathData, button.innerHTML));
-    }
+        button.addEventListener('click', () => enterDigit(mathData, button.textContent));
+    } else if (buttonData.name === 'backspace') {
+        button.addEventListener('click', () => deleteDigit(mathData));
+    } else if (buttonData.name === 'clear') {
+        button.addEventListener('click', () => clearDisplay(mathData));
+    } 
 
     return button;
 }
 
 function enterDigit(data, digit) {
-    const display = document.querySelector(".display");
     if (display.innerHTML === '0') {
         display.innerHTML = digit;
     } else {
         display.innerHTML += digit;
     }
+    data[data.current] += parseInt(digit);
+}
 
-    if (data.current === 'a') {
-        data.a += parseInt(digit);
-    } else if (data.current === 'b') {
-        data.b += parseInt(digit);
+function deleteDigit(data) {
+    if (display.textContent.length === 1) {
+        display.textContent = '0';
+    } else {
+        display.textContent = display.textContent.slice(0, -1);
     }
+    data[data.current] = Math.floor(data[data.current] / 10);
+}
+
+function clearDisplay(data) {
+    display.textContent = '0';
+    data.current = 'a';
+    data.operator = 'none';
+    data.a = 0.0;
+    data.b = 0.0;
 }
