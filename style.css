@@ -2,4 +2,51 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    /* font-size: large; */
+}
+
+.calculator {
+    margin: 32px auto;
+    /* Colour source: https://htmlcolorcodes.com/colors/golden-brown/ */
+    border: 6px solid #966919;
+    border-radius: 16px;
+    width: 280px;
+    box-shadow: 0 0 8px 6px darkgrey;
+    background-color: lightyellow;
+}
+
+.display {
+    margin: 32px 20px 40px;
+    padding: 0 6px;
+    background-color: whitesmoke;
+    box-shadow: inset 0 0 4px 2px darkgrey;
+    font-family: monospace;
+    font-size: 48px;
+    text-align: right;
+}
+
+.buttons {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-between;
+    gap: 14px;
+    margin: 20px;
+}
+
+button {
+    border: 0px solid white;
+    border-radius: 4px;
+    aspect-ratio: 1;
+    height: auto;
+    min-width: 20.4%;
+    background-color: white;
+    box-shadow: 0 0 4px 0.5px darkgrey;
+    font-weight: 600;
+}
+
+.evaluate {
+    aspect-ratio: 0;
+    flex: 1;
+    background-color: orange;
 }
