@@ -45,8 +45,16 @@ button {
     font-weight: 600;
 }
 
+button:hover {
+    background-color: antiquewhite;
+}
+
 .evaluate {
     aspect-ratio: 0;
     flex: 1;
     background-color: orange;
+}
+
+.evaluate:hover {
+    background-color: coral;
 }

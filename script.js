@@ -34,5 +34,25 @@ function createButton(buttonData, mathData) {
     const button = document.createElement("button");
     button.className = buttonData.name;
     button.textContent = buttonData.symbol;
+
+    if ('0' <= buttonData.symbol && buttonData.symbol <= '9') {
+        button.addEventListener('click', () => enterDigit(mathData, button.innerHTML));
+    }
+
     return button;
+}
+
+function enterDigit(data, digit) {
+    const display = document.querySelector(".display");
+    if (display.innerHTML === '0') {
+        display.innerHTML = digit;
+    } else {
+        display.innerHTML += digit;
+    }
+
+    if (data.current === 'a') {
+        data.a += parseInt(digit);
+    } else if (data.current === 'b') {
+        data.b += parseInt(digit);
+    }
 }
