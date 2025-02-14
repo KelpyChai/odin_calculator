@@ -1,3 +1,5 @@
+const MAX_DIGITS = 8;
+
 const display = document.querySelector(".display");
 const buttonsDiv = document.querySelector(".buttons");
 const buttons = [
@@ -25,6 +27,7 @@ const buttons = [
 let data = {
     current: 'a',
     operator: 'none',
+    numDigits: 1,
     a: 0,
     b: 0,
 };
@@ -62,20 +65,31 @@ function enterDigit(data, digit) {
         display.textContent = '0';
     }
 
-    if (!display.textContent.includes('.')) {
+    if (!display.textContent.includes('.') || display.textContent.includes('e')) {
         data[data.current] *= 10;
         data[data.current] += parseInt(digit);
     } else if (display.textContent.slice(-1) === '.') {
         data[data.current] += parseInt(digit) * 0.1;
     } else {
-        const decimalPlace = display.textContent.split('.')[1].length + 1;
+        const decimalPlace = data.numDigits - display.textContent.split('.')[0].length + 1;
         data[data.current] += parseInt(digit) * (0.1 ** decimalPlace);
     }
 
     if (display.textContent === '0') {
         display.textContent = digit;
+        data.numDigits = 1;
     } else {
         display.textContent += digit;
+        data.numDigits += 1;
+    }
+
+    if (data.numDigits > MAX_DIGITS) {
+        if (data[data.current].toString().includes('.')) {
+            const numDecimals = MAX_DIGITS - display.textContent.split('.')[0].length;
+            display.textContent = data[data.current].toFixed(numDecimals);
+        } else {
+            display.textContent = data[data.current].toExponential(3);
+        }
     }
 }
 
@@ -86,6 +100,7 @@ function enterDecimalPoint() {
     } else if (data.current === 'operator') {
         data.current = 'b';
         display.textContent = '0';
+        data.numDigits = 1;
     }
 
     if (!display.textContent.includes('.')) {
@@ -97,19 +112,32 @@ function deleteDigit(data) {
     if (Number.isNaN(parseFloat(data.a))) {
         data.a = 0;
         display.textContent = '0';
-    } else if (!display.textContent.includes('.')) {
+    } else if (!data[data.current].toString().includes('.')) {
         data[data.current] = Math.floor(data[data.current] / 10);
     } else if (display.textContent.slice(-1) === '.') {
-        // Do nothing
-    } else {
-        const decimalPlace = display.textContent.split('.')[1].length;
-        data[data.current] -= parseInt(display.textContent.slice(-1)) * (0.1 ** decimalPlace);
+        data.numDigits += 1;
+    } else if (data[data.current] !== 0) {
+        const decimalPlace = data.numDigits - display.textContent.split('.')[0].length;
+        data[data.current] -= parseInt(data[data.current].toString().slice(data.numDigits, data.numDigits + 1)) * (0.1 ** decimalPlace);
     }
 
-    if (display.textContent.length === 1) {
+    if (data.numDigits === 1) {
         display.textContent = '0';
     } else {
-        display.textContent = display.textContent.slice(0, -1);
+        data.numDigits -= 1;
+        if (data.numDigits > MAX_DIGITS) {
+            if (data[data.current].toString().includes('.')) {
+                const numDecimals = MAX_DIGITS - display.textContent.split('.')[0].length;
+                display.textContent = data[data.current].toFixed(numDecimals);
+            } else {
+                display.textContent = data[data.current].toExponential(3);
+            }
+        } else if (data.numDigits === MAX_DIGITS) {
+            const numDecimals = MAX_DIGITS - display.textContent.split('.')[0].length;
+            display.textContent = data[data.current].toFixed(numDecimals);
+        } else {
+            display.textContent = display.textContent.slice(0, -1);
+        }
     }
 }
 
@@ -117,6 +145,7 @@ function clearDisplay(data) {
     display.textContent = '0';
     data.current = 'a';
     data.operator = 'none';
+    data.numDigits = 1;
     data.a = 0;
     data.b = 0;
 }
@@ -132,7 +161,18 @@ function evaluteExpression(data) {
     data.b = 0;
     data.current = 'a';
     data.operator = 'none';
-    display.textContent = data.a.toString();
+    if (data.a.toString().includes('.')) {
+        if (data.a.toString().split('.')[0].length > MAX_DIGITS) {
+            display.textContent = data[data.current].toExponential(3);
+        } else if (data.a.toString().split('.')[1].length > MAX_DIGITS) {
+            const numDecimals = MAX_DIGITS - data.a.toString().split('.')[0].length;
+            display.textContent = data[data.current].toFixed(numDecimals);
+        }
+    } else if (data.a.toString().split('.')[0].length > MAX_DIGITS) {
+        display.textContent = data[data.current].toExponential(3);
+    } else {
+        display.textContent = data.a.toString();
+    }
 }
 
 function operate(data) {
