@@ -54,7 +54,10 @@ function createButton(buttonData, mathData) {
 }
 
 function enterDigit(data, digit) {
-    if (data.current === 'operator') {
+    if (Number.isNaN(parseFloat(data.a))) {
+        data.a = 0;
+        display.textContent = '0';
+    } else if (data.current === 'operator') {
         data.current = 'b';
         display.textContent = '0';
     }
@@ -77,7 +80,10 @@ function enterDigit(data, digit) {
 }
 
 function enterDecimalPoint() {
-    if (data.current === 'operator') {
+    if (Number.isNaN(parseFloat(data.a))) {
+        data.a = 0;
+        display.textContent = '0';
+    } else if (data.current === 'operator') {
         data.current = 'b';
         display.textContent = '0';
     }
@@ -88,7 +94,10 @@ function enterDecimalPoint() {
 }
 
 function deleteDigit(data) {
-    if (!display.textContent.includes('.')) {
+    if (Number.isNaN(parseFloat(data.a))) {
+        data.a = 0;
+        display.textContent = '0';
+    } else if (!display.textContent.includes('.')) {
         data[data.current] = Math.floor(data[data.current] / 10);
     } else if (display.textContent.slice(-1) === '.') {
         // Do nothing
@@ -142,7 +151,9 @@ function operate(data) {
 }
 
 function chooseOperator(data, operator) {
-    if (data.current === 'operator') {
+    if (Number.isNaN(parseFloat(data.a))) {
+        return;
+    } else if (data.current === 'operator') {
         if (operator === 'percent') {
             divideByHundred(data);
         } else {
@@ -169,6 +180,5 @@ function divideByHundred(data) {
 }
 
 // TODO:
-//  - Handle division by zero gracefully
 //  - Round decimals to avoid overflow
 //  - Mitigate floating point errors
