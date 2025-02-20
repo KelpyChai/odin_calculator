@@ -3,7 +3,7 @@ const MAX_NUM_DIGITS = 8;
 const buttonDiv = document.querySelector(".buttons");
 const buttonData = [
     {name: 'clear',     symbol: 'AC'},
-    {name: 'backpsace', symbol: '⌫'},
+    {name: 'backspace', symbol: '⌫'},
     {name: 'percent',   symbol: '%'},
     {name: 'divide',    symbol: '÷'},
     {name: 'seven',     symbol: '7'},
@@ -89,13 +89,41 @@ function enterDigit(data, digit) {
         data[data.curr] += digit;
         data.numIntegers += 1;
     }
-    console.log(data.currNum);
+
     displayCurrent(data);
 }
 
-function enterDecimal(data) {
+function enterDecimalPoint(data) {
     data.hasDecimal = true;
-    console.log(data.currNum);
+    displayCurrent(data);
+}
+
+function deleteDigit(data) {
+    if (data.numDecimals > 0) {
+        const multiplier = 10 ** (data.numDecimals - 1);
+        data[data.curr] = Math.floor(data.currNum * multiplier) / multiplier;
+        data.numDecimals -= 1;
+    } else if (data.hasDecimal) {
+        data.hasDecimal = false;
+    } else if (data.numIntegers === 1) {
+        data[data.curr] = 0;
+    } else {
+        data[data.curr] = Math.floor(data.currNum / 10);
+        data.numIntegers -= 1;
+    }
+
+    displayCurrent(data);
+}
+
+function clearDisplay(data) {
+    data.hasDecimal = false;
+    data.numIntegers = 1;
+    data.numDecimals = 0;
+    data.a = 0;
+    data.b = 0;
+    data.curr = 'a';
+    data.operator = 'none';
+
     displayCurrent(data);
 }
 
@@ -105,12 +133,20 @@ function createButton(button, data) {
     newButton.textContent = button.symbol;
 
     if ('0' <= button.symbol && button.symbol <= '9') {
-        newButton.addEventListener('click', () => {
+        newButton.addEventListener("click", () => {
             enterDigit(data, +newButton.textContent);
         });
     } else if (button.symbol === '.') {
-        newButton.addEventListener('click', () => {
-            enterDecimal(data);
+        newButton.addEventListener("click", () => {
+            enterDecimalPoint(data);
+        })
+    } else if (button.name === "backspace") {
+        newButton.addEventListener("click", () => {
+            deleteDigit(data);
+        })
+    } else if (button.name === "clear") {
+        newButton.addEventListener("click", () => {
+            clearDisplay(data);
         })
     }
 
