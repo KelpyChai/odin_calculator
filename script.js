@@ -37,7 +37,6 @@ const numberData = {
 };
 
 function displayCurrent(data) {
-    console.log(data);
     const display = document.querySelector(".display");
 
     if ((!data.hasDecimal && data.numDigits <= MAX_NUM_DIGITS) ||
@@ -75,12 +74,13 @@ function displayCurrent(data) {
         }
     }
 
-    if (display.textContent.slice(-1) === '.') {
+    if (display.textContent.slice(-1) === '.' && display.textContent.length === MAX_NUM_DIGITS + 1) {
         display.textContent = display.textContent.slice(0, -1);
     }
 }
 
 function getNumDecimals(numberStr) {
+    if (typeof numberStr !== "string") numberStr = String(numberStr);
     return numberStr.slice(numberStr.indexOf('.')).length - 1;
 }
 
@@ -150,18 +150,18 @@ function clearDisplay(data) {
 }
 
 function evaluateExpression(data) {
-    console.log(data);
     if (data.curr === 'operator') {
         data.b = data.a;
         data.curr = 'b';
     }
 
     if (data.curr === 'b') {
-        data.result = operate(data);
+        data.result = +operate(data).toFixed(0x10);
         data.a = 0;
         data.b = 0;
+        data.hasDecimal = (getNumDecimals(data.result) === 0) ? false : true;
         data.numIntegers = String(data.result).split('.')[0].length;
-        data.numDecimals = getNumDecimals(String(data.result));
+        data.numDecimals = getNumDecimals(data.result);
         data.curr = "result";
     }
 }
@@ -184,19 +184,19 @@ function operate(data) {
 function chooseOperator(data, operator) {
     if (data.curr === "result") {
         data.a = data.result;
-        data.curr = "operator";
-        data.operator = operator;
     } else if (data.curr === 'b') {
         evaluateExpression(data);
         displayCurrent(data);
         chooseOperator(data, operator);
-    } else if (operator === "percent") {
+        return;
+    }
+
+    if (operator === "percent") {
         divideByHundred(data);
     } else {
         data.operator = operator;
         data.curr = "operator";
     }
-    console.log(data);
 }
 
 function divideByHundred(data) {
@@ -204,6 +204,7 @@ function divideByHundred(data) {
     data.curr = 'b';
     data.operator = "divide";
     evaluateExpression(data);
+    displayCurrent(data);
 }
 
 function createButton(button, data) {
