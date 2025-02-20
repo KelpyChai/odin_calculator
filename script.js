@@ -24,18 +24,20 @@ const buttonData = [
 ];
 
 const numberData = {
+    a: 0,
+    b: 0,
+    result: 0,
     hasDecimal: false,
     numIntegers: 1,
     numDecimals: 0,
     get numDigits() { return this.numIntegers + this.numDecimals; },
-    a: 0,
-    b: 0,
     curr: 'a',
     get currNum() { return this[this.curr]; }, // Read-only
     operator: 'none',
 };
 
 function displayCurrent(data) {
+    console.log(data);
     const display = document.querySelector(".display");
 
     if ((!data.hasDecimal && data.numDigits <= MAX_NUM_DIGITS) ||
@@ -72,6 +74,10 @@ function displayCurrent(data) {
             display.textContent += '0';
         }
     }
+
+    if (display.textContent.slice(-1) === '.') {
+        display.textContent = display.textContent.slice(0, -1);
+    }
 }
 
 function getNumDecimals(numberStr) {
@@ -79,6 +85,15 @@ function getNumDecimals(numberStr) {
 }
 
 function enterDigit(data, digit) {
+    if (data.curr === "result") {
+        clearDisplay(data);
+    } else if (data.curr === "operator") {
+        data.hasDecimal = false;
+        data.numIntegers = 1;
+        data.numDecimals = 0;
+        data.curr = 'b';
+    }
+
     if (data.currNum === 0 && !data.hasDecimal) {
         data[data.curr] = digit;
     } else if (data.hasDecimal) {
@@ -89,16 +104,26 @@ function enterDigit(data, digit) {
         data[data.curr] += digit;
         data.numIntegers += 1;
     }
-
-    displayCurrent(data);
 }
 
 function enterDecimalPoint(data) {
+    if (data.curr === "result") {
+        clearDisplay(data);
+    } else if (data.curr === "operator") {
+        data.numIntegers = 1;
+        data.numDecimals = 0;
+        data.curr = 'b';
+    }
     data.hasDecimal = true;
-    displayCurrent(data);
 }
 
 function deleteDigit(data) {
+    if (data.curr === "result") {
+        clearDisplay(data);
+    } else if (data.curr === "operator") {
+        return;
+    }
+
     if (data.numDecimals > 0) {
         const multiplier = 10 ** (data.numDecimals - 1);
         data[data.curr] = Math.floor(data.currNum * multiplier) / multiplier;
@@ -111,20 +136,74 @@ function deleteDigit(data) {
         data[data.curr] = Math.floor(data.currNum / 10);
         data.numIntegers -= 1;
     }
-
-    displayCurrent(data);
 }
 
 function clearDisplay(data) {
+    data.a = 0;
+    data.b = 0;
+    data.result = 0;
     data.hasDecimal = false;
     data.numIntegers = 1;
     data.numDecimals = 0;
-    data.a = 0;
-    data.b = 0;
     data.curr = 'a';
     data.operator = 'none';
+}
 
-    displayCurrent(data);
+function evaluateExpression(data) {
+    console.log(data);
+    if (data.curr === 'operator') {
+        data.b = data.a;
+        data.curr = 'b';
+    }
+
+    if (data.curr === 'b') {
+        data.result = operate(data);
+        data.a = 0;
+        data.b = 0;
+        data.numIntegers = String(data.result).split('.')[0].length;
+        data.numDecimals = getNumDecimals(String(data.result));
+        data.curr = "result";
+    }
+}
+
+function operate(data) {
+    switch (data.operator) {
+        case 'add':
+            return data.a + data.b;
+        case 'subtract':
+            return data.a - data.b;
+        case 'multiply':
+            return data.a * data.b;
+        case 'divide':
+            return (data.b === 0) ? 'Uh-oh...' : data.a / data.b;
+        default:
+            return 'error: unexpected operator';
+    }
+}
+
+function chooseOperator(data, operator) {
+    if (data.curr === "result") {
+        data.a = data.result;
+        data.curr = "operator";
+        data.operator = operator;
+    } else if (data.curr === 'b') {
+        evaluateExpression(data);
+        displayCurrent(data);
+        chooseOperator(data, operator);
+    } else if (operator === "percent") {
+        divideByHundred(data);
+    } else {
+        data.operator = operator;
+        data.curr = "operator";
+    }
+    console.log(data);
+}
+
+function divideByHundred(data) {
+    data.b = 100;
+    data.curr = 'b';
+    data.operator = "divide";
+    evaluateExpression(data);
 }
 
 function createButton(button, data) {
@@ -135,18 +214,31 @@ function createButton(button, data) {
     if ('0' <= button.symbol && button.symbol <= '9') {
         newButton.addEventListener("click", () => {
             enterDigit(data, +newButton.textContent);
+            displayCurrent(data);
         });
-    } else if (button.symbol === '.') {
+    } else if (button.name === 'decimal') {
         newButton.addEventListener("click", () => {
             enterDecimalPoint(data);
+            displayCurrent(data);
         })
     } else if (button.name === "backspace") {
         newButton.addEventListener("click", () => {
             deleteDigit(data);
+            displayCurrent(data);
         })
     } else if (button.name === "clear") {
         newButton.addEventListener("click", () => {
             clearDisplay(data);
+            displayCurrent(data);
+        })
+    } else if (button.name === "evaluate") {
+        newButton.addEventListener("click", () => {
+            evaluateExpression(data);
+            displayCurrent(data);
+        })
+    } else {
+        newButton.addEventListener("click", () => {
+            chooseOperator(data, button.name);
         })
     }
 
