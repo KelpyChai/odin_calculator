@@ -74,7 +74,9 @@ function displayCurrent(data) {
         }
     }
 
-    if (display.textContent.slice(-1) === '.' && display.textContent.length === MAX_NUM_DIGITS + 1) {
+    if (data.curr === "result") {
+        display.textContent = String(+display.textContent);
+    } else if (display.textContent.slice(-1) === '.' && display.textContent.length === MAX_NUM_DIGITS + 1) {
         display.textContent = display.textContent.slice(0, -1);
     }
 }
